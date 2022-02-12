@@ -1,0 +1,8 @@
+version: '3'
+services:
+    wordle:
+        image: wordle
+        restart: unless-stopped
+        volumes:
+            - ./src:/wordle
+            - ./prv:/private
