@@ -31,6 +31,9 @@ async def on_message(message: discord.Message):
                     await message.channel.send("There was no game in progress")
             elif word == "stats":
                 stats = db.get_scores(message.author.id)
+                if not stats:
+                    await message.channel.send("You have never played!")
+                    return
                 embed = discord.Embed(title="Your stats", type="rich")
                 embed.description = f"You have played {stats[1]} games"
                 victories = "```"

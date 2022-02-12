@@ -10,7 +10,6 @@ def init():
 
 def add_score(uid: int, n: int, victory: bool):
     scores = get_scores(uid)
-    print(scores)
     if not scores:
         scores = [uid, 1, 0, 0, 0, 0, 0, 0]
     scores[1] += 1
@@ -26,5 +25,8 @@ def get_scores(uid: int) -> Optional[list[int]]:
     sql = sqlite3.connect(DATABASE_PATH)
     query = sql.execute("SELECT * FROM scores WHERE uid=?", [uid]).fetchone()
     sql.close()
-    return list(query)
+    if query:
+        return list(query)
+    else:
+        return None
 
