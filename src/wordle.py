@@ -9,7 +9,7 @@ class Wordle:
     def __init__(self):
         self.games: dict[int, Game] = {}
 
-    def new_game(self, uid: int) -> bool:
+    def restart(self, uid: int) -> bool:
         old = uid in self.games
         db.add_score(uid, 6, False)
         self.games[uid] = Game()
@@ -18,7 +18,7 @@ class Wordle:
     def guess(self, uid: int, word: str) -> str:
         caps = word.lower()
         if caps not in WORDS and caps not in TARGETS:
-            return "That is not a valid word"
+            return f"{word} is not a valid word"
 
         if uid not in self.games:
             self.games[uid] = Game()
@@ -28,16 +28,25 @@ class Wordle:
             self.games[uid] = Game()
 
         self.games[uid].guess(caps)
-        output = str(self.games[uid])
-        if self.games[uid].is_gameover():
+        return str(self.games[uid])
+
+    def get_guesses(self, uid: int) -> str:
+        if uid in self.games:
+            guesses = self.games[uid].get_guesses()
+            return "\n".join(guesses)
+        else:
+            return "Invalid word"
+
+    def check_gameover(self, uid: int):
+        if uid in self.games and self.games[uid].is_gameover():
             db.add_score(uid, self.games[uid].num_guesses(), self.games[uid].did_win())
             del self.games[uid]
-        return output
 
 class Game:
     def __init__(self):
         self.start = datetime.now()
         self.word = random.choice(TARGETS)
+        print(self.word)
         self.guesses = []
         self.emoji = []
         self.letters = {}
@@ -52,22 +61,29 @@ class Game:
         output = ""
         gameover = self.is_gameover()
         if gameover:
-            n = f"len(self.guesses)" if self.won else "X"
+            n = f"{self.num_guesses()}" if self.won else "X"
             output += f"{self.word} {n}/6\n\n"
         for e in self.emoji:
             output += e + '\n'
-        if gameover and not self.won:
-            output += "Better luck next time!"
+
+        if gameover:
+            if self.won:
+                output += "Well done!"
+            else:
+                output += "Better luck next time!"
         return output
 
     def is_gameover(self) -> bool:
-        return len(self.guesses) == 6
+        return len(self.guesses) == 6 or self.won
 
     def did_win(self) -> bool:
         return self.won
 
-    def num_guesses(self) -> int:
+    def get_guesses(self) -> list[str]:
         return self.guesses
+
+    def num_guesses(self) -> int:
+        return len(self.guesses)
 
     def get_starttime(self) -> datetime:
         return self.start
@@ -78,6 +94,7 @@ class Game:
         if guess == self.word:
             self.emoji.append(":green_square:" * 5)
             self.won = True
+            return
 
         emoji = ""
         for i in range(5):
