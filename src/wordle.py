@@ -123,8 +123,9 @@ class Game:
         if len(indices) == n:
             return ":yellow_square:"
 
-        for i in indices:
-            if i == idx:
+        for i in range(n):
+            j = indices[i]
+            if j == idx:
                 return ":yellow_square:"
 
         return ":black_large_square:"
